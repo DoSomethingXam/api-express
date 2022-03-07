@@ -1,1 +1,1 @@
-web: sh -c 'cd ./learn-express/ && npm run deploy'
+web: sh -c 'cd learn-express && npm run deploy'
