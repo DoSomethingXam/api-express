@@ -82,6 +82,10 @@ const UserSchema = new Schema({
       }
     }
   },
+  role: {
+    type: String,
+    default: 'user'
+  },
   created_at: {
     type: String,
     default: moment().format('YYYY-MM-DD HH:mm:ss')
@@ -107,6 +111,19 @@ UserSchema.methods.createToken = function(err, next) {
   let payload = { username: this.username };
   let token = jwt.sign(payload, SECRET_TOKEN);
   return token;
+};
+
+UserSchema.methods.toJSON = function() {
+  let user = this;
+  const objUser = user.toObject();
+  user.date_of_birth = moment(user.date_of_birth).format('DD-MM-YYYY');
+
+  delete objUser.created_at;
+  delete objUser.updated_at;
+  delete objUser.__v;
+  delete objUser.password;
+
+  return objUser;
 };
 
 const User = mongoose.model('User', UserSchema);
