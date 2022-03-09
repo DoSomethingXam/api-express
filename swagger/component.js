@@ -1,6 +1,11 @@
 /**
  * @swagger
  * components:
+ *  securitySchemes:
+ *    bearerAuth:
+ *      type: http
+ *      scheme: bearer
+ *      bearerFormat: JWT
  *  schemas:
  *    User:
  *      type: object
@@ -40,39 +45,29 @@
  *        phone: '0391234567'
  *        date_of_birth: 01-01-1971
  *        avatar: user.png
- */
-
-/**
- * @swagger
- * /user:
- *  get:
- *    summary: Return the list of all the users
- *    tags: [Users]
- *    parameters:
- *      - in: query
- *        name: page
- *        description: The page of list user
- *        schema:
- *          type: integer
- *          format: int64
- *          minimum: 1
- *      - in: query
- *        name: username
- *        description: The username for query
- *        schema:
+ *    Admin:
+ *      type: object
+ *      required:
+ *        - username
+ *        - password
+ *      properties:
+ *        id:
  *          type: string
- *      - in: query
- *        name: name
- *        description: The name for query
- *        schema:
+ *          description: The auto-generated id of the user
+ *        username:
  *          type: string
- *    responses:
- *      200:
- *        description: The list of the users
- *        content:
- *          application/json:
- *            schema:
- *              type: array
- *              items:
- *                $ref: '#/components/schemas/User'
+ *          description: The username of the admin
+ *        password:
+ *          type: string
+ *          description: The password of the admin
+ *        name:
+ *          type: string
+ *          description: The name of the admin
+ *        email:
+ *          type: string
+ *          description: The email of the admin
+ *      example:
+ *        username: admin
+ *        name: KaiTou
+ *        email: admin@gmail.com
  */

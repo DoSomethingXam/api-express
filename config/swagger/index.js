@@ -9,12 +9,21 @@ const options = {
     info: {
       title: 'Library API',
       version: '1.0.0',
-      description: 'A simple Express Library API'
+      description: 'A simple Express Library API',
+      contact: {
+        name: 'Support API',
+        url: 'https://github.com/DoSomethingXam',
+        email: 'lhlhai.spkt@gmail.com'
+      }
     },
     servers: [
       {
         url: 'http://localhost:3000',
         description: 'Local server'
+      },
+      {
+        url: 'https://learning-express-1.herokuapp.com/',
+        description: 'Host server'
       }
     ],
     tags: [
@@ -28,7 +37,7 @@ const options = {
       }
     ]
   },
-  apis: ['./swagger/*.js']
+  apis: ['./swagger/component.js', './swagger/*/*.js']
 };
 const spec = swaggerJsDoc(options);
 

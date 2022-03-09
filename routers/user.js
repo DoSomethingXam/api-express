@@ -10,7 +10,7 @@ router.get('/', async (req, res, next) => {
   let query = _.pickBy(req.query, _.identity);
   let pageOptions = {
     page: parseInt(query.page) || 1,
-    limit: 10
+    limit: parseInt(query.limit) || 10
   }
   let objQuery = {};
   Object.keys(query)
@@ -30,18 +30,17 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-router.get('/detail', checkLogin, async (req, res, next) => {
-  let id = req.user.id;
-  const user = await User.findById(id);
+router.get('/:id', checkLogin, async (req, res, next) => {
+  let user = req.user;
+  let reqId = req.params.id;
+  if (user.id != reqId) {
+    throw {
+      status: 409,
+      message: 'Something was wrong...'
+    }
+  }
 
   try {
-    if (!user) {
-      res.status(404).json({
-        status: 'error',
-        message: 'Not found User'
-      });
-    }
-
     res.json({
       status: 'success',
       message: 'Get detail successful',
@@ -70,7 +69,8 @@ router.post('/', async (req, res, next) => {
     await user.save();
     res.json({
       status: 'success',
-      message: 'Create success'
+      message: 'Create success',
+      data: user
     });
   } catch (err) {
     next(err);
@@ -80,7 +80,7 @@ router.post('/', async (req, res, next) => {
 router.put('/:id', checkLogin, async (req, res, next) => {
   let id = req.params.id;
   let objBody = _.pickBy(req.body, _.identity);
-  objBody.updatedAt = moment().format('YYYY-MM-DD HH:mm:ss');
+  objBody.updated_at = moment().format('YYYY-MM-DD HH:mm:ss');
   let keys = Object.keys(objBody);
   const user = await User.findById(id);
 
@@ -88,17 +88,18 @@ router.put('/:id', checkLogin, async (req, res, next) => {
     if (!user) {
       throw {
         status: 404,
-        message: 'Not found...'
+        message: 'The user was not found...'
       }
     }
 
     keys.forEach(key => {
       user[key] = objBody[key];
     });
-    await user.save();
+    let result = await user.save();
     res.json({
       status: 'success',
-      message: 'Update success'
+      message: 'Update success',
+      data: result
     });
   } catch(err) {
     next(err);
@@ -139,7 +140,7 @@ router.post('/login', async (req, res, next) => {
     if (!user) {
       throw {
         status: 404,
-        message: 'Not found...'
+        message: 'The user was not found...'
       }
     }
 
@@ -147,15 +148,16 @@ router.post('/login', async (req, res, next) => {
     if (!hashPass) {
       throw {
         status: 409,
-        message: 'Password is wrong...'
+        message: 'Password was wrong...'
       }
     }
 
     let token = user.createToken();
     res.json({
       status: 'success',
-      message: `Login success. Welcome ${user.username}`,
-      token: token
+      message: `Login success`,
+      token: token,
+      data: user
     });
   } catch (err) {
     next(err);

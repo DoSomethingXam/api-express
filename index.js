@@ -41,7 +41,7 @@ app.use(function(err, req, res, next) {
     if (err.errors[key[0]] && err.errors[key[0]].properties) {
       message = err.errors[key[0]].properties.message;
     }
-    res.status(409).json({
+    res.status(500).json({
       status: 'error',
       message: message
     });
