@@ -6,8 +6,32 @@ const express = require('express'),
       User = require('../models/user'),
       checkLogin = require('../middleware/auth');
 
-router.get('/:id', async (req, res, next) => {
-  let id = req.params.id;
+router.get('/', async (req, res, next) => {
+  let query = _.pickBy(req.query, _.identity);
+  let pageOptions = {
+    page: parseInt(query.page) || 1,
+    limit: 10
+  }
+  let objQuery = {};
+  Object.keys(query)
+        .forEach(key => objQuery[key] = {$regex: query[key]});
+
+  try {
+    const users = await User.find(objQuery)
+                            .limit(pageOptions.limit)
+                            .skip(pageOptions.limit * (pageOptions.page - 1));
+    res.json({
+      status: 'success',
+      message: 'Get list successful',
+      data: users
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/detail', checkLogin, async (req, res, next) => {
+  let id = req.user.id;
   const user = await User.findById(id);
 
   try {
@@ -22,27 +46,6 @@ router.get('/:id', async (req, res, next) => {
       status: 'success',
       message: 'Get detail successful',
       data: user
-    });
-  } catch (err) {
-    next(err);
-  }
-});
-
-router.get('/', async (req, res, next) => {
-  let objParam = _.pickBy(req.query, _.identity);
-  let pageOptions = {
-    page: parseInt(req.query.page) || 1,
-    limit: 10
-  }
-
-  try {
-    const users = await User.find(objParam)
-                            .limit(pageOptions.limit)
-                            .skip(pageOptions.limit * (pageOptions.page - 1));
-    res.json({
-      status: 'success',
-      message: 'Get list User successful',
-      data: users
     });
   } catch (err) {
     next(err);

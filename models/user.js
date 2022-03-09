@@ -116,7 +116,7 @@ UserSchema.methods.createToken = function(err, next) {
 UserSchema.methods.toJSON = function() {
   let user = this;
   const objUser = user.toObject();
-  user.date_of_birth = moment(user.date_of_birth).format('DD-MM-YYYY');
+  objUser.date_of_birth = moment(objUser.date_of_birth).format('DD-MM-YYYY');
 
   delete objUser.created_at;
   delete objUser.updated_at;
@@ -126,6 +126,6 @@ UserSchema.methods.toJSON = function() {
   return objUser;
 };
 
-const User = mongoose.model('User', UserSchema);
+const User = mongoose.model('user', UserSchema);
 
 module.exports = User;

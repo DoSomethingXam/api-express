@@ -2,6 +2,7 @@ const express = require('express'),
       morgan = require('morgan'),
       cors = require('cors'),
       db = require('./config/db'),
+      swagger = require('./config/swagger'),
       userRouter = require('./routers/user');
 
 db.connect();
@@ -12,6 +13,8 @@ app.use(morgan('dev'));
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+app.use(swagger);
 
 app.get('/', () => {
   res.json({
