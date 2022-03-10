@@ -1,7 +1,7 @@
 /**
  * @swagger
  * /user/{id}:
- *  put:
+ *  patch:
  *    summary: Update the user by the id
  *    tags: [Users]
  *    security:

@@ -1,10 +1,14 @@
 const express = require('express'),
       bcrypt = require('bcrypt'),
       _ = require('lodash'),
-      router = express.Router(),
       moment = require('moment'),
+      multer = require('multer'),
+      fs = require('fs'),
+      path = require('path'),
       User = require('../models/user'),
-      checkLogin = require('../middleware/auth');
+      auth = require('../middleware/auth');
+
+const router = express.Router();
 
 router.get('/', async (req, res, next) => {
   let query = _.pickBy(req.query, _.identity);
@@ -15,7 +19,6 @@ router.get('/', async (req, res, next) => {
   let objQuery = {};
   Object.keys(query)
         .forEach(key => objQuery[key] = {$regex: query[key]});
-
   try {
     const users = await User.find(objQuery)
                             .limit(pageOptions.limit)
@@ -30,16 +33,12 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-router.get('/:id', checkLogin, async (req, res, next) => {
+router.get('/:id', auth, async (req, res, next) => {
   let user = req.user;
   let reqId = req.params.id;
   if (user.id != reqId) {
-    throw {
-      status: 409,
-      message: 'Something was wrong...'
-    }
+    throw new Error('Something was wrong...');
   }
-
   try {
     res.json({
       status: 'success',
@@ -59,10 +58,7 @@ router.post('/', async (req, res, next) => {
 
   try {
     if (userExist) {
-      throw {
-        status: 409,
-        message: 'User has exist'
-      }
+      throw new Error('User has exist');
     }
 
     let user = await new User(objBody);
@@ -77,21 +73,18 @@ router.post('/', async (req, res, next) => {
   }
 });
 
-router.put('/:id', checkLogin, async (req, res, next) => {
+router.patch('/:id', auth, async (req, res, next) => {
   let id = req.params.id;
+  let user = req.user;
+  if (user.id != id) {
+    throw new Error('Something was wrong...');
+  }
+
   let objBody = _.pickBy(req.body, _.identity);
   objBody.updated_at = moment().format('YYYY-MM-DD HH:mm:ss');
+
   let keys = Object.keys(objBody);
-  const user = await User.findById(id);
-
   try {
-    if (!user) {
-      throw {
-        status: 404,
-        message: 'The user was not found...'
-      }
-    }
-
     keys.forEach(key => {
       user[key] = objBody[key];
     });
@@ -119,7 +112,7 @@ router.delete('/all', async (req, res, next) => {
 });
 
 router.delete('/:id', async (req, res, next) => {
-  let id = req.body.id;
+  let id = req.params.id;
 
   try {
     await User.deleteOne({}, {_id: id});
@@ -138,18 +131,15 @@ router.post('/login', async (req, res, next) => {
 
   try {
     if (!user) {
-      throw {
-        status: 404,
+      res.status(404).json({
+        status: 'error',
         message: 'The user was not found...'
-      }
+      });
     }
 
     let hashPass = await bcrypt.compare(objBody.password, user.password);
     if (!hashPass) {
-      throw {
-        status: 409,
-        message: 'Password was wrong...'
-      }
+      throw new Error('Password was wrong...');
     }
 
     let token = user.createToken();
@@ -162,6 +152,61 @@ router.post('/login', async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+});
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      let dirName = 'public/avatars';
+      if (!fs.existsSync(dirName)) {
+        fs.mkdirSync(dirName);
+      }
+      cb(null, dirName);
+    },
+    filename: (req, file, cb) => {
+      let name = file.fieldname,
+          date = moment().format('YYMMDD'),
+          extname = path.extname(file.originalname);
+
+      cb(null, `${name}_${date}${extname}`);
+    }
+  }),
+  limits: {
+    fileSize: 3000000
+  },
+  fileFilter: (req, file, cb) => {
+    if (!file.originalname.toLowerCase().match(/\.(png|jpg|jpeg)$/)) {
+      return cb(new Error('Your image not match with extension: jpg|jpeg|png'), false);
+    }
+    cb(null, true);
+  }
+}).single('avatar');
+
+router.post('/avatar', auth, (req, res) => {
+  upload(req, res, async function(err) {
+    try {
+      if (!req.file) {
+        throw new Error('Please select an image...');
+      } else if (err instanceof multer.MulterError) {
+        throw err;
+      } else if (err) {
+        throw err;
+      }
+      let user = req.user;
+      user['avatar'] = user.name + '_' + req.file.filename;
+      let result = await user.save();
+      res.json({
+        status: 'success',
+        message: 'The avatar was uploaded',
+        data: result
+      });
+    } catch (err) {
+      res.status(500).json({
+        status: 'error',
+        message: err.message
+      });
+    }
+  });
 });
 
 module.exports = router;

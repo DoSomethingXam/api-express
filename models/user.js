@@ -35,9 +35,6 @@ const UserSchema = new Schema({
       if (val.length < 8) {
         throw new Error('The minimum length of password is 8 characters...');
       }
-      if (val.length > 20) {
-        throw new Error('The maximum length of password is 20 characters...');
-      }
     },
   },
   email: {
@@ -70,10 +67,6 @@ const UserSchema = new Schema({
       }
     }
   },
-  avatar: {
-    data: Buffer,
-    contentType: String,
-  },
   date_of_birth: {
     type: String,
     validate(val) {
@@ -81,6 +74,11 @@ const UserSchema = new Schema({
         throw new Error("Please enter your date of birth...");
       }
     }
+  },
+  avatar: {
+    type: String,
+    trim: true,
+    default: ''
   },
   role: {
     type: String,

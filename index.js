@@ -2,6 +2,7 @@ const express = require('express'),
       morgan = require('morgan'),
       cors = require('cors'),
       db = require('./config/db'),
+      path = require('path'),
       swagger = require('./config/swagger'),
       userRouter = require('./routers/user');
 
@@ -13,6 +14,8 @@ app.use(morgan('dev'));
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+app.use(express.static(path.join(__dirname, 'public')))
 
 app.use(swagger);
 
@@ -28,12 +31,8 @@ app.use('/user', userRouter);
 app.use(function(err, req, res, next) {
   let message;
 
-  if (err.status) {
+  if (err) {
     message = err.message;
-    res.status(err.status).json({
-      status: 'error',
-      message: message
-    });
   }
 
   if (err.errors) {
@@ -41,11 +40,11 @@ app.use(function(err, req, res, next) {
     if (err.errors[key[0]] && err.errors[key[0]].properties) {
       message = err.errors[key[0]].properties.message;
     }
-    res.status(500).json({
-      status: 'error',
-      message: message
-    });
   }
+  res.status(500).json({
+    status: 'error',
+    message: message
+  });
 });
 
 app.listen(port, (err) => {
