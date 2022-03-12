@@ -164,11 +164,12 @@ const upload = multer({
       cb(null, dirName);
     },
     filename: (req, file, cb) => {
-      let name = file.fieldname,
-          date = moment().format('YYMMDD'),
+      let user = req.user,
+          name = file.fieldname,
+          date = moment().format('YYMMDD_HHmmss'),
           extname = path.extname(file.originalname);
 
-      cb(null, `${name}_${date}${extname}`);
+      cb(null, `${user.name.toLowerCase()}_${name}_${date}${extname}`);
     }
   }),
   limits: {
@@ -192,13 +193,22 @@ router.post('/avatar', auth, (req, res) => {
       } else if (err) {
         throw err;
       }
+      let host = req.get('host');
       let user = req.user;
-      user['avatar'] = user.name + '_' + req.file.filename;
+      if (user.avatar !== '') {
+        let filename = `public/avatars/${user.avatar}`;
+        fs.unlinkSync(filename);
+      }
+      user['avatar'] = req.file.filename;
       let result = await user.save();
+      let newResult = {
+        ...result.toJSON(),
+        full_url_avatar: `${host}/avatars/${result.avatar}`
+      };
       res.json({
         status: 'success',
         message: 'The avatar was uploaded',
-        data: result
+        data: newResult
       });
     } catch (err) {
       res.status(500).json({
