@@ -9,16 +9,18 @@ const express = require('express'),
 db.connect();
 const app = express();
 const port = process.env.PORT || 3000;
+const corsOpt = {
+  origin: 'https://learning-express-1.herokuapp.com/'
+};
+
+app.disable('x-powered-by');
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(morgan('dev'));
-app.use(cors());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
-
-
+app.use(cors(corsOpt));
 app.use(swagger);
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+app.use(express.json({limit: '2mb'}));
 
 app.get('/', (req, res) => {
   res.json({

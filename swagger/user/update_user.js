@@ -2,7 +2,7 @@
  * @swagger
  * /user:
  *  patch:
- *    summary: Update the user by the id
+ *    summary: Update the user
  *    tags: [Users]
  *    security:
  *      - bearerAuth: []
