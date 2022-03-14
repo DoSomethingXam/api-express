@@ -31,6 +31,7 @@ app.use('/user', userRouter);
 
 app.use(function(err, req, res, next) {
   let message;
+  let statusCode = err?.code || 500;
 
   if (err) {
     message = err.message;
@@ -42,7 +43,8 @@ app.use(function(err, req, res, next) {
       message = err.errors[key[0]].properties.message;
     }
   }
-  res.status(500).json({
+
+  res.status(statusCode).json({
     status: 'error',
     message: message
   });

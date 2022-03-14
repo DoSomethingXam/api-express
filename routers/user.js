@@ -3,8 +3,7 @@ const express = require('express'),
       _ = require('lodash'),
       moment = require('moment'),
       multer = require('multer'),
-      fs = require('fs'),
-      path = require('path'),
+      multerOption = require('../config/multer'),
       User = require('../models/user'),
       auth = require('../middleware/auth');
 
@@ -131,10 +130,10 @@ router.post('/login', async (req, res, next) => {
 
   try {
     if (!user) {
-      res.status(404).json({
-        status: 'error',
+      throw {
+        code: 404,
         message: 'The user was not found...'
-      });
+      }
     }
 
     let hashPass = await bcrypt.compare(objBody.password, user.password);
@@ -154,34 +153,7 @@ router.post('/login', async (req, res, next) => {
   }
 });
 
-const upload = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => {
-      let dirName = 'public/avatars';
-      if (!fs.existsSync(dirName)) {
-        fs.mkdirSync(dirName);
-      }
-      cb(null, dirName);
-    },
-    filename: (req, file, cb) => {
-      let user = req.user,
-          name = file.fieldname,
-          date = moment().format('YYMMDD_HHmmss'),
-          extname = path.extname(file.originalname);
-
-      cb(null, `${user.name.toLowerCase()}_${name}_${date}${extname}`);
-    }
-  }),
-  limits: {
-    fileSize: 3000000
-  },
-  fileFilter: (req, file, cb) => {
-    if (!file.originalname.toLowerCase().match(/\.(png|jpg|jpeg)$/)) {
-      return cb(new Error('Your image not match with extension: jpg|jpeg|png'), false);
-    }
-    cb(null, true);
-  }
-}).single('avatar');
+const upload = multer(multerOption).single('avatar');
 
 router.post('/avatar', auth, (req, res) => {
   upload(req, res, async function(err) {
@@ -217,6 +189,22 @@ router.post('/avatar', auth, (req, res) => {
       });
     }
   });
+});
+
+router.delete('/avatar', auth, (req, res, next) => {
+  try {
+    let user = req.user;
+    if (user.avatar !== '') {
+      let filename = `public/avatars/${user.avatar}`;
+      fs.unlinkSync(filename);
+      res.json({
+        status: 'success',
+        message: 'The avatar was deleted'
+      });
+    }
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;
