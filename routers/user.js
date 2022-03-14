@@ -4,6 +4,7 @@ const express = require('express'),
       moment = require('moment'),
       multer = require('multer'),
       multerOption = require('../config/multer'),
+      fs = require('fs'),
       User = require('../models/user'),
       auth = require('../middleware/auth');
 
@@ -72,16 +73,10 @@ router.post('/', async (req, res, next) => {
   }
 });
 
-router.patch('/:id', auth, async (req, res, next) => {
-  let id = req.params.id;
+router.patch('/', auth, async (req, res, next) => {
   let user = req.user;
-  if (user.id != id) {
-    throw new Error('Something was wrong...');
-  }
-
   let objBody = _.pickBy(req.body, _.identity);
   objBody.updated_at = moment().format('YYYY-MM-DD HH:mm:ss');
-
   let keys = Object.keys(objBody);
   try {
     keys.forEach(key => {
@@ -145,8 +140,7 @@ router.post('/login', async (req, res, next) => {
     res.json({
       status: 'success',
       message: `Login success`,
-      token: token,
-      data: user
+      token: token
     });
   } catch (err) {
     next(err);
@@ -155,7 +149,7 @@ router.post('/login', async (req, res, next) => {
 
 const upload = multer(multerOption).single('avatar');
 
-router.post('/avatar', auth, (req, res) => {
+router.post('/avatar/upload', auth, (req, res) => {
   upload(req, res, async function(err) {
     try {
       if (!req.file) {
@@ -191,16 +185,24 @@ router.post('/avatar', auth, (req, res) => {
   });
 });
 
-router.delete('/avatar', auth, (req, res, next) => {
+router.post('/avatar/delete', auth, async (req, res, next) => {
   try {
     let user = req.user;
     if (user.avatar !== '') {
       let filename = `public/avatars/${user.avatar}`;
       fs.unlinkSync(filename);
+      user.avatar = '';
+      let result = await user.save();
       res.json({
         status: 'success',
-        message: 'The avatar was deleted'
+        message: 'The avatar was deleted',
+        data: result
       });
+    } else {
+      throw {
+        code: 409,
+        message: "The user didn't have an avatar..."
+      }
     }
   } catch (err) {
     next(err);

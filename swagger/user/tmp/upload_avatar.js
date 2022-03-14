@@ -1,6 +1,6 @@
 /**
  * @swagger
- * /user/avatar:
+ * /user/avatar/upload:
  *  post:
  *    summary: Upload the avatar of the user
  *    tags: [Users]

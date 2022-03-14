@@ -1,18 +1,11 @@
 /**
  * @swagger
- * /user/{id}:
+ * /user:
  *  patch:
  *    summary: Update the user by the id
  *    tags: [Users]
  *    security:
  *      - bearerAuth: []
- *    parameters:
- *      - in: path
- *        name: id
- *        required: true
- *        description: The user id
- *        schema:
- *          type: string
  *    requestBody:
  *      required: true
  *      content:
