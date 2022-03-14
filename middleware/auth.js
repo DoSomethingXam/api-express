@@ -6,28 +6,25 @@ let checkLogin = async (req, res, next) => {
   try {
     let tokenBearer = req.headers.authorization;
     if (!tokenBearer) {
-      throw {
-        code: 401,
-        message: 'Not have token...'
-      }
+      const err = new Error('Not have token...');
+      err.code = 401;
+      throw err;
     }
     let token = tokenBearer.replace('Bearer ', '');
     let username;
     jwt.verify(token, SECRET_TOKEN, function(err, decoded) {
       if (err) {
-        throw {
-          code: 403,
-          message: err.message
-        }
+        const error = new Error(err.message)
+        error.code = 403
+        throw error;
       }
       username = decoded.username;
     });
     let user = await User.findOne({username: username});
     if (!user) {
-      throw {
-        code: 404,
-        message: 'The user was not found...'
-      }
+      const err = new Error('The user was not found...');
+      err.code = 404;
+      throw err;
     }
     req.user = user;
     next();

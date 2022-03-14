@@ -16,7 +16,7 @@ const UserSchema = new Schema({
       if (!isNaN(val.charAt(0))) {
         throw new Error("Don't use username start with a number...")
       }
-      if (!validator.matches(val, /^[\w\s_.]+$/)) {
+      if (!validator.matches(val, /^[\w\s.]+$/)) {
         throw new Error("Don't put special character in your username...");
       }
       if (val > 30) {
@@ -107,8 +107,7 @@ UserSchema.pre('save', async function(next) {
 UserSchema.methods.createToken = function(err, next) {
   if (err) return next(err);
   let payload = { username: this.username };
-  let token = jwt.sign(payload, SECRET_TOKEN);
-  return token;
+  return jwt.sign(payload, SECRET_TOKEN);
 };
 
 UserSchema.methods.toJSON = function() {

@@ -125,10 +125,9 @@ router.post('/login', async (req, res, next) => {
 
   try {
     if (!user) {
-      throw {
-        code: 404,
-        message: 'The user was not found...'
-      }
+      const err = new Error('The user was not found...');
+      err.code = 404;
+      throw err;
     }
 
     let hashPass = await bcrypt.compare(objBody.password, user.password);
@@ -176,10 +175,10 @@ router.post('/avatar/upload', auth, (req, res) => {
         message: 'The avatar was uploaded',
         data: newResult
       });
-    } catch (err) {
+    } catch (e) {
       res.status(500).json({
         status: 'error',
-        message: err.message
+        message: e.message
       });
     }
   });
@@ -199,10 +198,9 @@ router.post('/avatar/delete', auth, async (req, res, next) => {
         data: result
       });
     } else {
-      throw {
-        code: 409,
-        message: "The user didn't have an avatar..."
-      }
+      const err = new Error("The user didn't have an avatar...");
+      err.code = 409;
+      throw err;
     }
   } catch (err) {
     next(err);
