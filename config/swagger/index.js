@@ -24,7 +24,10 @@ const options = {
       {
         url: 'https://learning-express-1.herokuapp.com/',
         description: 'Host server'
-      }
+      },
+          { url: 'https://api-express-i2ff.onrender.com/',
+           description: 'Onrender server'
+          }
     ],
     tags: [
       {
