@@ -36,12 +36,14 @@ router.get('/', async (req, res, next) => {
 router.get('/:id', auth, async (req, res, next) => {
   let user = req.user;
   let reqId = req.params.id;
-  if (user.id != reqId) {
+  
+  try {
+
+        if (user.id != reqId) {
     const err = new Error('Ai cho coi thông tin người khác mà coi @@');
       err.code = 403;
       throw err;
   }
-  try {
     res.json({
       status: 'success',
       message: 'Get detail successful',
