@@ -37,7 +37,9 @@ router.get('/:id', auth, async (req, res, next) => {
   let user = req.user;
   let reqId = req.params.id;
   if (user.id != reqId) {
-    throw new Error('Something was wrong...');
+    const err = new Error('Ai cho coi thông tin người khác mà coi @@');
+      err.code = 403;
+      throw err;
   }
   try {
     res.json({
